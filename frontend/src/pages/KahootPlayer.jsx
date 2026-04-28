@@ -1,0 +1,133 @@
+import { useState, useEffect } from 'react';
+import { useSocket } from '../context/SocketContext';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
+
+const KahootPlayer = () => {
+  const socket = useSocket();
+  const [pin, setPin] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [gameState, setGameState] = useState('join'); // join, waiting, playing, answered, result, final
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [lastResult, setLastResult] = useState(null);
+  const [totalScore, setTotalScore] = useState(0);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on('joined_room', (data) => {
+      setGameState('waiting');
+      toast.success("Joined! Wait for the host to start.");
+    });
+
+    socket.on('game_started', () => setGameState('playing'));
+
+    socket.on('new_question', (q) => {
+      setCurrentQuestion(q);
+      setGameState('playing');
+    });
+
+    socket.on('answer_result', (data) => {
+      setLastResult(data);
+      setTotalScore(data.total_score);
+      setGameState('result');
+    });
+
+    socket.on('game_over', () => setGameState('final'));
+
+    socket.on('error', (err) => toast.error(err.message));
+
+    return () => {
+      socket.off('joined_room');
+      socket.off('game_started');
+      socket.off('new_question');
+      socket.off('answer_result');
+      socket.off('game_over');
+    };
+  }, [socket]);
+
+  const joinGame = (e) => {
+    e.preventDefault();
+    if (!pin || !nickname) return;
+    socket.emit('join_room_request', { pin, nickname });
+  };
+
+  const submitAnswer = (option) => {
+    socket.emit('submit_answer', { pin, answer: option });
+    setGameState('answered');
+  };
+
+  if (gameState === 'join') {
+    return (
+      <div className="container flex items-center justify-center" style={{ minHeight: '100vh' }}>
+        <form onSubmit={joinGame} className="glass-card flex flex-col gap-4" style={{ padding: '3rem', width: '100%', maxWidth: '400px' }}>
+          <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Join Kahoot</h1>
+          <input type="text" placeholder="Game PIN" value={pin} onChange={(e) => setPin(e.target.value)} style={{ textAlign: 'center', fontSize: '1.5rem', fontWeight: 800 }} required />
+          <input type="text" placeholder="Nickname" value={nickname} onChange={(e) => setNickname(e.target.value)} style={{ textAlign: 'center' }} required />
+          <button type="submit" className="btn btn-primary" style={{ padding: '1rem', fontSize: '1.2rem' }}>Join</button>
+        </form>
+      </div>
+    );
+  }
+
+  if (gameState === 'waiting') {
+    return (
+      <div className="container flex items-center justify-center" style={{ minHeight: '100vh', textAlign: 'center' }}>
+        <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
+          <h1 style={{ fontSize: '3rem' }}>You're In!</h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Check your name on the screen</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (gameState === 'playing') {
+    return (
+      <div style={{ height: '100vh', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', padding: '0.5rem' }}>
+        {currentQuestion.options.map((opt, i) => (
+          <button key={i} onClick={() => submitAnswer(opt)} className={`kahoot-option opt-${i}`} style={{ border: 'none' }}>
+            {/* We don't show the text on the player's phone usually, just shapes, but for this web app we'll show text too */}
+            {opt}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  if (gameState === 'answered') {
+    return (
+      <div className="container flex items-center justify-center" style={{ minHeight: '100vh', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '2.5rem' }}>Answered!</h1>
+        <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Wait for others...</p>
+      </div>
+    );
+  }
+
+  if (gameState === 'result') {
+    return (
+      <div className={`container flex items-center justify-center`} style={{ minHeight: '100vh', textAlign: 'center', background: lastResult.is_correct ? 'var(--success)' : 'var(--error)' }}>
+        <div>
+          <h1 style={{ fontSize: '4rem' }}>{lastResult.is_correct ? 'Correct!' : 'Wrong'}</h1>
+          <h2 style={{ marginTop: '2rem' }}>+{lastResult.points} points</h2>
+          <p style={{ marginTop: '1rem' }}>Current Score: {totalScore}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (gameState === 'final') {
+    return (
+      <div className="container flex items-center justify-center" style={{ minHeight: '100vh', textAlign: 'center' }}>
+        <div className="glass-card" style={{ padding: '4rem' }}>
+          <h1 style={{ fontSize: '3rem' }}>Game Over!</h1>
+          <h2 style={{ marginTop: '2rem', color: 'var(--primary)' }}>Final Score: {totalScore}</h2>
+          <button onClick={() => window.location.reload()} className="btn btn-outline" style={{ marginTop: '2rem' }}>Play Again</button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+export default KahootPlayer;
