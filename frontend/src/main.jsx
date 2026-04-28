@@ -9,7 +9,11 @@ import { Toaster } from 'react-hot-toast'
 import axios from 'axios';
 
 // Configure axios
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+let backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+if (backendUrl.endsWith('/')) {
+  backendUrl = backendUrl.slice(0, -1);
+}
+axios.defaults.baseURL = backendUrl;
 axios.defaults.withCredentials = true;
 
 ReactDOM.createRoot(document.getElementById('root')).render(
