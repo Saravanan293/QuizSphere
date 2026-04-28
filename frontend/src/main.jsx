@@ -10,10 +10,7 @@ import { Toaster } from 'react-hot-toast'
 import axios from 'axios';
 
 // Configure axios
-let backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
-if (backendUrl.endsWith('/')) {
-  backendUrl = backendUrl.slice(0, -1);
-}
+const backendUrl = 'https://quizsphere-1.onrender.com';
 axios.defaults.baseURL = backendUrl;
 axios.defaults.withCredentials = true;
 

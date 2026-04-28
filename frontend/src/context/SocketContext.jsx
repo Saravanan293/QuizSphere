@@ -7,7 +7,7 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:5000';
+    const backendUrl = 'https://quizsphere-1.onrender.com';
     const newSocket = io(backendUrl, {
       transports: ['polling', 'websocket'],
       autoConnect: true
