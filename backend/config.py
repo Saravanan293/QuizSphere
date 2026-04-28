@@ -10,6 +10,8 @@ class Config:
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB upload limit
     UPLOAD_FOLDER = 'uploads'
+    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SECURE = True
 
 class DevelopmentConfig(Config):
     DEBUG = True

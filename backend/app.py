@@ -26,6 +26,12 @@ def create_app(config_name=None):
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
+    
+    @app.before_request
+    def log_request_info():
+        app.logger.info('Body: %s', request.get_data())
+        print(f"DEBUG: Received {request.method} request to {request.path} from {request.remote_addr}")
+
     allowed_origins = os.environ.get('ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
     
     CORS(app, supports_credentials=True, origins=allowed_origins)
