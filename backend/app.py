@@ -34,7 +34,8 @@ def create_app(config_name=None):
 
     allowed_origins = os.environ.get('ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
     
-    CORS(app, supports_credentials=True, origins=allowed_origins)
+    # Allow any Vercel deployment and the specific origins
+    CORS(app, supports_credentials=True, origins=allowed_origins + [r"https://.*\.vercel\.app"])
     socketio.init_app(app, cors_allowed_origins='*', async_mode='eventlet')
 
     login_manager.login_view = 'auth.login'
