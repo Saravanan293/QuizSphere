@@ -3,7 +3,7 @@ eventlet.monkey_patch()
 
 import os
 import sys
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request, jsonify
 from flask_socketio import SocketIO
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
@@ -27,11 +27,6 @@ def create_app(config_name=None):
     bcrypt.init_app(app)
     login_manager.init_app(app)
     
-    @app.before_request
-    def log_request_info():
-        app.logger.info('Body: %s', request.get_data())
-        print(f"DEBUG: Received {request.method} request to {request.path} from {request.remote_addr}")
-
     allowed_origins = os.environ.get('ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
     
     # Allow any Vercel deployment and the specific origins
