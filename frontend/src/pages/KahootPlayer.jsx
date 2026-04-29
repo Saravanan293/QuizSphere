@@ -20,7 +20,8 @@ const KahootPlayer = () => {
       toast.success("Joined! Wait for the host to start.");
     });
 
-    socket.on('game_started', () => setGameState('playing'));
+    // Remove redundant game_started listener that causes race condition crashes
+    // socket.on('game_started', () => setGameState('playing'));
 
     socket.on('new_question', (q) => {
       setCurrentQuestion(q);
@@ -39,7 +40,7 @@ const KahootPlayer = () => {
 
     return () => {
       socket.off('joined_room');
-      socket.off('game_started');
+      // socket.off('game_started');
       socket.off('new_question');
       socket.off('answer_result');
       socket.off('game_over');
@@ -82,14 +83,31 @@ const KahootPlayer = () => {
   }
 
   if (gameState === 'playing') {
+    if (!currentQuestion) {
+      return (
+        <div className="container flex items-center justify-center" style={{ minHeight: '100vh', textAlign: 'center' }}>
+          <div className="glass-card" style={{ padding: '2rem' }}>
+            <h2>Loading Question...</h2>
+            <div className="loading-spinner" style={{ marginTop: '1rem' }}></div>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div style={{ height: '100vh', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', padding: '0.5rem' }}>
-        {currentQuestion.options.map((opt, i) => (
-          <button key={i} onClick={() => submitAnswer(opt)} className={`kahoot-option opt-${i}`} style={{ border: 'none' }}>
-            {/* We don't show the text on the player's phone usually, just shapes, but for this web app we'll show text too */}
-            {opt}
-          </button>
-        ))}
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="glass-card" style={{ margin: '1rem', padding: '1.5rem', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Question {currentQuestion.index + 1}</h2>
+          <h1 style={{ fontSize: '1.5rem' }}>{currentQuestion.question}</h1>
+        </div>
+        
+        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', padding: '0.5rem' }}>
+          {currentQuestion.options.map((opt, i) => (
+            <button key={i} onClick={() => submitAnswer(opt)} className={`kahoot-option opt-${i}`} style={{ border: 'none' }}>
+              {opt}
+            </button>
+          ))}
+        </div>
       </div>
     );
   }

@@ -86,6 +86,7 @@ const KahootHost = () => {
   }
 
   if (gameState === 'playing') {
+    if (!currentQuestion) return <div className="container">Loading...</div>;
     return (
       <div className="container" style={{ textAlign: 'center' }}>
         <h1 style={{ fontSize: '3rem', marginBottom: '4rem' }}>{currentQuestion.question}</h1>
@@ -94,7 +95,7 @@ const KahootHost = () => {
             <div key={i} className={`kahoot-option opt-${i}`} style={{ cursor: 'default' }}>{opt}</div>
           ))}
         </div>
-        <div style={{ marginTop: '4rem', display: 'flex', justifyBetween: 'space-between', alignItems: 'center' }}>
+        <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div className="glass-card" style={{ padding: '2rem' }}>
             <h2 style={{ fontSize: '3rem' }}>{answeredCount}</h2>
             <p>Answers</p>
