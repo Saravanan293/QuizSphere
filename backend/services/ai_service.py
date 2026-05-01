@@ -103,17 +103,24 @@ def _generate_mock_questions(text, difficulty, num_questions):
 
         # Build question based on difficulty
         if difficulty == 'easy':
-            q_text = f"According to the document, which of the following is mentioned in relation to: \"{sentence[:80]}...\"?"
+            q_text = f"What is the main term discussed in this excerpt: \"{sentence[:60]}...\"?"
         elif difficulty == 'hard':
-            q_text = f"Based on the analysis of the content, what can be inferred about the concept discussed in: \"{sentence[:80]}...\"?"
+            q_text = f"Which concept best matches the following description: \"{sentence[:60]}...\"?"
         else:
-            q_text = f"What does the document state about: \"{sentence[:80]}...\"?"
+            q_text = f"Identify the key concept related to: \"{sentence[:60]}...\"?"
 
-        correct = f"It relates to {keyword}"
-        wrong_words = random.sample(['analysis', 'framework', 'structure', 'methodology', 'implementation',
-                                      'paradigm', 'architecture', 'protocol', 'algorithm', 'specification'],
-                                     k=3)
-        options = [correct] + [f"It relates to {w}" for w in wrong_words]
+        correct = keyword.capitalize()
+        
+        # Try to find other words from the text for wrong options to make it look real
+        all_words = list(set([w.strip('.,!?;:()[]"\'').capitalize() for w in words if len(w.strip('.,!?;:()[]"\'')) > 3 and w.lower() != keyword.lower()]))
+        
+        if len(all_words) >= 3:
+            wrong_words = random.sample(all_words, k=3)
+        else:
+            default_wrong = ['Analysis', 'Framework', 'Structure', 'Methodology', 'Implementation', 'Paradigm', 'Architecture', 'Protocol', 'Algorithm', 'Specification', 'Database', 'Network', 'Function']
+            wrong_words = random.sample(default_wrong, k=3)
+            
+        options = [correct] + wrong_words
         random.shuffle(options)
 
         questions.append({

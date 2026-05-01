@@ -16,6 +16,7 @@ const KahootHost = () => {
   const [answeredCount, setAnsweredCount] = useState(0);
   const [questionResults, setQuestionResults] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [timeLeft, setTimeLeft] = useState(15);
 
   useEffect(() => {
     if (!socket) return;
@@ -26,6 +27,7 @@ const KahootHost = () => {
       setCurrentQuestion(q);
       setGameState('playing');
       setAnsweredCount(0);
+      setTimeLeft(15);
     });
 
     socket.on('answer_count_updated', (data) => {
@@ -51,6 +53,18 @@ const KahootHost = () => {
       socket.off('game_over');
     };
   }, [socket]);
+
+  useEffect(() => {
+    let timer;
+    if (gameState === 'playing' && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (gameState === 'playing' && timeLeft === 0) {
+      showResults();
+    }
+    return () => clearInterval(timer);
+  }, [gameState, timeLeft]);
 
   const startGame = () => {
     if (players.length === 0) return toast.error("Need players to start!");
@@ -96,11 +110,17 @@ const KahootHost = () => {
           ))}
         </div>
         <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div className="glass-card" style={{ padding: '2rem' }}>
+          <div className="glass-card" style={{ padding: '2rem', minWidth: '150px' }}>
             <h2 style={{ fontSize: '3rem' }}>{answeredCount}</h2>
             <p>Answers</p>
           </div>
-          <button onClick={showResults} className="btn btn-primary" style={{ padding: '1.5rem 3rem' }}>End Question</button>
+          
+          <div className="glass-card" style={{ padding: '2rem', minWidth: '150px' }}>
+            <h2 style={{ fontSize: '3rem', color: timeLeft <= 5 ? 'var(--error)' : 'inherit' }}>{timeLeft}s</h2>
+            <p>Time Left</p>
+          </div>
+
+          <button onClick={showResults} className="btn btn-primary" style={{ padding: '1.5rem 3rem', minWidth: '150px' }}>End Question</button>
         </div>
       </div>
     );
