@@ -26,6 +26,7 @@ const KahootPlayer = () => {
 
     socket.on('new_question', (q) => {
       setCurrentQuestion(q);
+      setLastResult(null); // Reset last result for the new question
       setGameState('playing');
       setTimeLeft(15);
     });
@@ -33,6 +34,10 @@ const KahootPlayer = () => {
     socket.on('answer_result', (data) => {
       setLastResult(data);
       setTotalScore(data.total_score);
+      // Wait for host to trigger question_results before changing state
+    });
+
+    socket.on('question_results', () => {
       setGameState('result');
     });
 
@@ -42,9 +47,9 @@ const KahootPlayer = () => {
 
     return () => {
       socket.off('joined_room');
-      // socket.off('game_started');
       socket.off('new_question');
       socket.off('answer_result');
+      socket.off('question_results');
       socket.off('game_over');
     };
   }, [socket]);
@@ -138,11 +143,14 @@ const KahootPlayer = () => {
   }
 
   if (gameState === 'result') {
+    const isCorrect = lastResult?.is_correct || false;
+    const points = lastResult?.points || 0;
+    
     return (
-      <div className={`container flex items-center justify-center`} style={{ minHeight: '100vh', textAlign: 'center', background: lastResult.is_correct ? 'var(--success)' : 'var(--error)' }}>
+      <div className={`container flex items-center justify-center`} style={{ minHeight: '100vh', textAlign: 'center', background: isCorrect ? 'var(--success)' : 'var(--error)' }}>
         <div>
-          <h1 style={{ fontSize: '4rem' }}>{lastResult.is_correct ? 'Correct!' : 'Wrong'}</h1>
-          <h2 style={{ marginTop: '2rem' }}>+{lastResult.points} points</h2>
+          <h1 style={{ fontSize: '4rem' }}>{isCorrect ? 'Correct!' : (lastResult ? 'Wrong' : 'Time\'s Up!')}</h1>
+          <h2 style={{ marginTop: '2rem' }}>+{points} points</h2>
           <p style={{ marginTop: '1rem' }}>Current Score: {totalScore}</p>
         </div>
       </div>
