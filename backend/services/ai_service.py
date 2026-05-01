@@ -36,6 +36,11 @@ Difficulty level: {difficulty.upper()}
 TEXT CONTENT:
 {text}
 
+CRITICAL RULES FOR OPTIONS:
+- Options MUST be short, specific names, single words, or brief phrases (e.g., "Vijay", "Algorithm", "1994", "Mitochondria").
+- NEVER use repetitive prefixes like "It relates to", "It is", or "He is".
+- All options must belong to the same category (e.g., if the answer is a person, all wrong options must be other people or names).
+
 RESPOND WITH ONLY A VALID JSON ARRAY. No markdown, no code blocks, no explanation.
 Each object must have exactly these fields:
 - "question": the question text (string)
@@ -157,6 +162,11 @@ Questions should be concise (max 100 characters), with short answer options (max
 Mix of easy, medium, and hard questions.
 
 TEXT: {text}
+
+CRITICAL RULES FOR OPTIONS:
+- Options MUST be short, specific names, single words, or brief phrases (e.g., "Vijay", "Algorithm", "1994", "Mitochondria").
+- NEVER use repetitive prefixes like "It relates to", "It is", or "He is".
+- All options must belong to the same category (e.g., if the answer is a person, all wrong options must be other people or names).
 
 RESPOND WITH ONLY A VALID JSON ARRAY:
 [{{"question":"Short question?","options":["A","B","C","D"],"correct_answer":"B","time_limit":20}}]

@@ -11,6 +11,7 @@ const KahootPlayer = () => {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [lastResult, setLastResult] = useState(null);
   const [totalScore, setTotalScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(15);
 
   useEffect(() => {
     if (!socket) return;
@@ -26,6 +27,7 @@ const KahootPlayer = () => {
     socket.on('new_question', (q) => {
       setCurrentQuestion(q);
       setGameState('playing');
+      setTimeLeft(15);
     });
 
     socket.on('answer_result', (data) => {
@@ -46,6 +48,16 @@ const KahootPlayer = () => {
       socket.off('game_over');
     };
   }, [socket]);
+
+  useEffect(() => {
+    let timer;
+    if ((gameState === 'playing' || gameState === 'answered') && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [gameState, timeLeft]);
 
   const joinGame = (e) => {
     e.preventDefault();
@@ -96,7 +108,8 @@ const KahootPlayer = () => {
 
     return (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <div className="glass-card" style={{ margin: '1rem', padding: '1.5rem', textAlign: 'center' }}>
+        <div className="glass-card" style={{ margin: '1rem', padding: '1.5rem', textAlign: 'center', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: '1rem', right: '1rem', fontWeight: 'bold', fontSize: '1.2rem', color: timeLeft <= 5 ? 'var(--error)' : 'inherit' }}>{timeLeft}s</div>
           <h2 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Question {currentQuestion.index + 1}</h2>
           <h1 style={{ fontSize: '1.5rem' }}>{currentQuestion.question}</h1>
         </div>
@@ -114,9 +127,12 @@ const KahootPlayer = () => {
 
   if (gameState === 'answered') {
     return (
-      <div className="container flex items-center justify-center" style={{ minHeight: '100vh', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2.5rem' }}>Answered!</h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Wait for others...</p>
+      <div className="container flex items-center justify-center" style={{ minHeight: '100vh', textAlign: 'center', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: '2rem', right: '2rem', fontSize: '1.5rem', fontWeight: 'bold', color: timeLeft <= 5 ? 'var(--error)' : 'inherit' }}>{timeLeft}s</div>
+        <div>
+          <h1 style={{ fontSize: '2.5rem' }}>Answered!</h1>
+          <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Wait for others...</p>
+        </div>
       </div>
     );
   }
